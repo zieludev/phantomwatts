@@ -264,10 +264,10 @@ The simulation and the codecs work without any Bluetooth at all:
 '40 00 4e 0c fa 00'
 ```
 
-To use it from another project before it is on PyPI:
+To use it from another project before it is on PyPI, take a release by its tag:
 
 ```bash
-uv add --dev "phantomwatts @ git+https://github.com/zieludev/phantomwatts"
+uv add --dev "phantomwatts @ git+https://github.com/zieludev/phantomwatts@v0.1.0"
 ```
 
 ## What it emulates
