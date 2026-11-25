@@ -278,7 +278,7 @@ There are no presets that imitate a real trainer, and there will not be.
 | The trainer's stack on an outside controller over HCI (a virtual one, over TCP) | run |
 | `phantomwatts run` and `phantomwatts demo` as processes | run |
 | The pytest fixture | run |
-| `.github/workflows/ci.yml` on GitHub | not run yet: written before the repository was on GitHub, every command in it passed locally |
+| `.github/workflows/ci.yml` on GitHub (lint, types, the suite on Python 3.11 to 3.14) | run |
 | A Windows guest through `vhcibridge.ps1` and the driver | not run by anyone |
 | `.github/workflows/windows-e2e.yml` (Windows 11 on ARM, WinRT central) | not run by anyone |
 | Linux through `/dev/vhci` | not run by anyone |
