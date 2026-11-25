@@ -16,6 +16,7 @@ import pytest
 from bleak import BleakClient, BleakScanner
 from bleak.backends.characteristic import BleakGATTCharacteristic
 from bleak.backends.device import BLEDevice
+from bleak.exc import BleakError
 
 from phantomwatts.bumble_adapter.radio import VirtualRadio
 from phantomwatts.bumble_adapter.service import serve
@@ -44,7 +45,8 @@ async def _find(name: str) -> BLEDevice:
         while True:
             try:
                 device = await BleakScanner.find_device_by_name(name, timeout=5.0)
-            except OSError:
+            except (OSError, BleakError):
+                # Until the radio is up, bleak reports that the machine has no adapter at all.
                 device = None
             if device is not None:
                 return device
