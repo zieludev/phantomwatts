@@ -1,0 +1,39 @@
+# EXPERIMENTAL AND UNVERIFIED. Nobody has run this workflow yet. It was written from the
+# documentation of dlech/windows-vhci-driver without a Windows machine at hand, so expect to
+# fix it on its first run. It only ever starts by hand.
+name: Windows end-to-end (experimental, unverified)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  winrt:
+    name: WinRT central through the Windows Bluetooth stack
+    # The driver's action supports Windows client images only, and on GitHub those are ARM.
+    runs-on: windows-11-arm
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      # The action ref and the driver version are kept equal, as the driver's README asks.
+      - name: Install the virtual HCI driver
+        uses: dlech/windows-vhci-driver/actions/install@v1.3.0
+        with:
+          version: v1.3.0
+
+      - uses: astral-sh/setup-uv@v10.4.0
+        with:
+          version: "0.10.2"
+          python-version: "3.13"
+
+      - name: Install
+        run: uv sync --locked --no-default-groups --group test
+
+      - name: A WinRT central finds the trainer, subscribes and sets a target
+        run: uv run --no-sync pytest tests/windows -v
+        env:
+          PHANTOMWATTS_WINDOWS_E2E: "1"
+          PHANTOMWATTS_TEST_TIMEOUT_S: "300"

@@ -1,0 +1,88 @@
+[project]
+name = "phantomwatts"
+version = "0.1.0"
+description = "A virtual Bluetooth LE smart trainer that needs no radio, for testing indoor cycling apps"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.11"
+authors = [{ name = "zieludev" }]
+keywords = ["bluetooth", "ble", "ftms", "cycling", "smart trainer", "testing"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Testing",
+    "Framework :: Pytest",
+    "Programming Language :: Python :: 3 :: Only",
+    "Typing :: Typed",
+]
+# Bumble is 0.0.x and renames things between releases, so this is an exact pin: the lock, the
+# tests and CI all describe this one version. Bump it on purpose, in bumble_adapter/ only.
+dependencies = ["bumble==0.0.236"]
+
+[project.urls]
+Repository = "https://github.com/zieludev/phantomwatts"
+
+[project.scripts]
+phantomwatts = "phantomwatts.cli:main"
+
+[project.entry-points.pytest11]
+phantomwatts = "phantomwatts.pytest_plugin"
+
+[dependency-groups]
+dev = [
+    { include-group = "test" },
+    "ruff>=0.14",
+    # Not mypy: it depends on pathspec, which is MPL-2.0.
+    "basedpyright>=1.40",
+]
+test = [
+    "pytest>=8.4",
+    # Independent parsers the codec tests check against. Pinned because they are private names.
+    "pycycling==0.4.1",
+    # The WinRT central of the experimental Windows end-to-end test.
+    "bleak>=3.1",
+    # Controller shims the Windows Bluetooth stack needs, and the transport to its virtual HCI
+    # driver. Not on PyPI. The tag is the driver release the shims were published with.
+    "winvhci @ git+https://github.com/dlech/windows-vhci-driver@v1.3.0#subdirectory=python",
+]
+
+[build-system]
+requires = ["uv_build>=0.10.2,<0.11"]
+build-backend = "uv_build"
+
+[tool.uv]
+# Bumble declares libusb1 (LGPL-2.1-or-later) and libusb-package (bundles libusb, LGPL) as hard
+# dependencies but only imports them for its usb: transports, which this project never opens.
+exclude-dependencies = ["libusb1", "libusb-package"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "B", "UP", "SIM", "C4", "PT", "RET", "RUF", "ASYNC"]
+
+[tool.basedpyright]
+include = ["src", "tests"]
+typeCheckingMode = "strict"
+pythonVersion = "3.11"
+
+# Bumble ships py.typed but leaves many of its generics unparameterised, which strict mode
+# reports as an unknown type at nearly every call into it. The rules about unknown types are
+# off in the one package that uses Bumble, and on everywhere else.
+[[tool.basedpyright.executionEnvironments]]
+root = "src/phantomwatts/bumble_adapter"
+extraPaths = ["src"]
+reportUnknownMemberType = false
+reportUnknownArgumentType = false
+reportUnknownVariableType = false
+reportUnknownParameterType = false
+reportUnknownLambdaType = false
+
+[[tool.basedpyright.executionEnvironments]]
+root = "."
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+filterwarnings = ["error"]

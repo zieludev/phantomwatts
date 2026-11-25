@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: astral-sh/setup-uv@v10.4.0
+        with:
+          version: "0.10.2"
+          python-version: "3.12"
+
+      - name: Install
+        run: uv sync --locked
+
+      - name: Lint
+        run: uv run ruff check
+
+      - name: Format
+        run: uv run ruff format --check
+
+      - name: Types
+        run: uv run basedpyright
+
+  # Bumble is the moving part, and it supports every Python from 3.11 on, so the suite runs on
+  # each of them. No job needs Bluetooth hardware: the radio is simulated.
+  test:
+    name: test (python ${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.12", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: astral-sh/setup-uv@v10.4.0
+        with:
+          version: "0.10.2"
+          python-version: ${{ matrix.python }}
+
+      - name: Install
+        run: uv sync --locked
+
+      - name: Tests
+        run: uv run pytest
