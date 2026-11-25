@@ -1,6 +1,6 @@
 """Through the Linux kernel: the virtual controller behind /dev/vhci.
 
-Both tests pass on a GitHub-hosted Ubuntu runner, whose kernel ships hci_vhci. They need root,
+Both tests pass on the GitHub-hosted Ubuntu runners whose kernel ships hci_vhci. They need root,
 and are only collected when PHANTOMWATTS_LINUX_VHCI is set (see tests/conftest.py and
 .github/workflows/linux-vhci.yml).
 

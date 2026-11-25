@@ -1,6 +1,7 @@
-# The Linux kernel on a virtual controller: `phantomwatts run --attach vhci` on a hosted runner,
-# whose kernel ships the hci_vhci module. It passes there. It only ever starts by hand, and
-# stops at the kernel: there is no BlueZ on the runner.
+# The Linux kernel on a virtual controller: `phantomwatts run --attach vhci` on a hosted runner.
+# It passes where the runner's kernel ships the hci_vhci module, which not every runner's does
+# (see the step that loads it). It only ever starts by hand, and stops at the kernel: there is
+# no BlueZ on the runner.
 name: Linux vhci
 
 on:
@@ -25,8 +26,14 @@ jobs:
       - name: Install
         run: uv sync --locked --no-default-groups --group test --python /usr/bin/python3
 
+      # GitHub hands out Ubuntu runners from two clouds. The kernel of those on Azure ships
+      # hci_vhci; a run that landed on AWS found none, and nothing is installed here to add it.
       - name: Load the virtual HCI driver
-        run: sudo modprobe hci_vhci
+        run: |
+          if ! sudo modprobe hci_vhci; then
+            echo "::error::The kernel of this runner, $(uname -r), has no hci_vhci module. Start the workflow again to get another runner."
+            exit 1
+          fi
 
       # As root: /dev/vhci belongs to it, and so does an HCI socket in user channel mode.
       - name: The kernel brings the controller up and carries the exchange

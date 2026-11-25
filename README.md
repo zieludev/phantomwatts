@@ -190,10 +190,15 @@ On a machine with Bluetooth devices you care about, try it in a virtual machine 
 `.github/workflows/linux-vhci.yml` runs that command on a GitHub runner (Ubuntu 26.04, kernel
 7.0). The kernel takes the controller through its start-up and reports the adapter up, under
 the address `F0:F1:F2:F3:F4:F5`. Then a Bumble host stack on the kernel's HCI socket for that
-adapter finds the trainer, takes control and sets a target power. Both pass; the workflow starts
-only by hand. It stops at the kernel: the runner has no BlueZ, and I do not install it there,
-because BlueZ is under the GPL and this project keeps to permissive dependencies, in its tests
-too. So what `bluetoothd`, or an app on top of it, makes of the trainer is still open.
+adapter finds the trainer, takes control and sets a target power. Both pass, on the runners
+whose kernel has `hci_vhci`. GitHub hands out runners from two clouds. On Azure the kernel
+ships the module. The one run that landed on AWS found a kernel without it; there the workflow
+stops before the tests and says so. It starts only by hand, so starting it again is the way
+out.
+
+It stops at the kernel: the runner has no BlueZ, and I do not install it there, because BlueZ
+is under the GPL and this project keeps to permissive dependencies, in its tests too. So what
+`bluetoothd`, or an app on top of it, makes of the trainer is still open.
 
 There is also `--hci SPEC`, without any virtual radio: the trainer's own stack on a real
 controller, for example `--hci hci-socket:0`, so that a phone or a head unit can see it over
@@ -299,7 +304,7 @@ There are no presets that imitate a real trainer, and there will not be.
 | `.github/workflows/windows-e2e.yml`: the real Windows Bluetooth stack on a virtual controller, a WinRT central finds the trainer, subscribes and sets a target (Windows 11 on ARM, x64 Python under emulation) | run on GitHub |
 | The same workflow, the way a guest gets the trainer but on one machine: `phantomwatts run --windows` in a process of its own, `vhcibridge.ps1` between its port and the driver | run on GitHub |
 | A Windows guest through `vhcibridge.ps1` and the driver | not run by anyone |
-| `.github/workflows/linux-vhci.yml`: the Linux kernel takes the virtual controller from `/dev/vhci` and brings it up, and a Bumble host on the kernel's HCI socket completes the exchange (Ubuntu 26.04, kernel 7.0) | run on GitHub |
+| `.github/workflows/linux-vhci.yml`: the Linux kernel takes the virtual controller from `/dev/vhci` and brings it up, and a Bumble host on the kernel's HCI socket completes the exchange (Ubuntu 26.04, kernel 7.0, on the runners whose kernel has `hci_vhci`) | run on GitHub |
 | BlueZ, or a Linux app, on that adapter | not run by anyone |
 | A real adapter with `--hci` | not run by anyone |
 | Any real app, ROUVY and Zwift included | not run by anyone |
