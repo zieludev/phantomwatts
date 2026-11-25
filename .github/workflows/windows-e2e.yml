@@ -1,5 +1,7 @@
-# The real Windows Bluetooth stack on a virtual controller. It passes on windows-11-arm and
-# only ever starts by hand. It does not cover the TCP bridge, a guest or an x64 Windows.
+# The real Windows Bluetooth stack on a virtual controller, reached two ways: with the driver
+# opened by the test itself, and the way a guest reaches it, through the driver project's
+# bridge to `phantomwatts run --windows`. Both pass on windows-11-arm. It only ever starts by
+# hand, and does not cover a guest or an x64 Windows.
 name: Windows end-to-end
 
 on:
@@ -10,10 +12,19 @@ permissions:
 
 jobs:
   winrt:
-    name: WinRT central through the Windows Bluetooth stack
+    name: WinRT central, ${{ matrix.route }}
     # The driver's action supports Windows client images only, and on GitHub those are ARM.
     runs-on: windows-11-arm
     timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      # One runner each: the driver gives its radio to one process at a time.
+      matrix:
+        include:
+          - route: driver opened in process
+            tests: not bridge
+          - route: phantomwatts run behind the bridge
+            tests: bridge
     steps:
       - uses: actions/checkout@v7
 
@@ -22,6 +33,15 @@ jobs:
         uses: dlech/windows-vhci-driver/actions/install@v1.3.0
         with:
           version: v1.3.0
+
+      # tools/vhcibridge.ps1, the script a guest runs, from the same release as the driver.
+      - name: Fetch the bridge
+        uses: actions/checkout@v7
+        with:
+          repository: dlech/windows-vhci-driver
+          ref: v1.3.0
+          path: windows-vhci-driver
+          sparse-checkout: tools
 
       # An x64 Python, run under emulation: cryptography, which Bumble depends on, publishes no
       # arm64 Windows wheel and does not build here without OpenSSL.
@@ -34,7 +54,8 @@ jobs:
         run: uv sync --locked --no-default-groups --group test
 
       - name: A WinRT central finds the trainer, subscribes and sets a target
-        run: uv run --no-sync pytest tests/windows -v
+        run: uv run --no-sync pytest tests/windows -v -k "${{ matrix.tests }}"
         env:
           PHANTOMWATTS_WINDOWS_E2E: "1"
           PHANTOMWATTS_TEST_TIMEOUT_S: "300"
+          PHANTOMWATTS_VHCIBRIDGE: ${{ github.workspace }}\windows-vhci-driver\tools\vhcibridge.ps1

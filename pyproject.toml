@@ -40,7 +40,7 @@ test = [
     "pytest>=8.4",
     # Independent parsers the codec tests check against. Pinned because they are private names.
     "pycycling==0.4.1",
-    # The WinRT central of the experimental Windows end-to-end test.
+    # The WinRT central of the Windows end-to-end tests.
     "bleak>=3.1",
     # Controller shims the Windows Bluetooth stack needs, and the transport to its virtual HCI
     # driver. Not on PyPI. The tag is the driver release the shims were published with.

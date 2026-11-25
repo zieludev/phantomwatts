@@ -116,8 +116,8 @@ Logs go to standard error. Port 0 lets the system pick a free port and `ready` r
 
 ## Attach it to a Windows guest
 
-**Nobody has run this in a guest yet.** The Windows side of it has run on a GitHub runner (see
-the end of this section). It is built on
+**Nobody has run this in a guest yet.** Everything but the guest has run on a GitHub runner,
+the bridge included (see the end of this section). It is built on
 [dlech/windows-vhci-driver](https://github.com/dlech/windows-vhci-driver), a virtual HCI
 controller for Windows: the guest's ordinary Bluetooth stack runs on top of a controller that
 lives in a process on the host, which is this one.
@@ -159,17 +159,20 @@ What I matched against that project's own example (`tools/bumble-controller.py -
 - the sizes: the bridge takes frames of up to 1026 bytes, and the trainer keeps the ATT MTU at
   23, so nothing it sends is longer than the 27-byte LE buffer the controller announces.
 
-What I could not confirm: that Windows brings the radio up with Bumble 0.0.236 (the shims were
-published against 0.0.226 and 0.0.234), that the Windows GATT client is happy with this
-trainer, and that any app connects. What I did run: a Bumble host stack, connecting from its
-public address as Windows does, completes the whole exchange through those shims over the same
-TCP wire. The driver's author cannot Bluetooth-test x64 guests in CI either, only ARM ones.
+`.github/workflows/windows-e2e.yml` runs this on a `windows-11-arm` runner, with the driver
+installed, in two ways. In one job the test hands the virtual controller to the driver itself.
+In the other it does what the two commands above do, on one machine: `phantomwatts run
+--windows` is a process of its own and `vhcibridge.ps1` connects the driver to its port on
+127.0.0.1. Either way a WinRT central (bleak) finds the trainer, subscribes, takes control and
+sets a target power, and in the second job the trainer's standard output reports the connection
+and both commands. Both jobs pass. The workflow starts only by hand and runs an x64 Python under
+emulation.
 
-`.github/workflows/windows-e2e.yml` runs the Windows half of this on a `windows-11-arm` runner:
-it installs the driver, hands Windows the virtual controller in process, and a WinRT central
-(bleak) finds the trainer, subscribes, takes control and sets a target power. It passes. It
-starts only by hand, runs an x64 Python under emulation, and does not cover the bridge, a
-guest or an x64 Windows.
+So Windows does bring the radio up with Bumble 0.0.236 (the shims were published against
+0.0.226 and 0.0.234), and its GATT client is happy with this trainer. What is still open: a
+guest, where the bridge crosses the virtual machine's network instead of staying on 127.0.0.1;
+an x64 Windows, which the driver's author cannot Bluetooth-test in CI either, only ARM; and any
+app.
 
 ## Attach it to Linux
 
@@ -283,8 +286,9 @@ There are no presets that imitate a real trainer, and there will not be.
 | `phantomwatts run` and `phantomwatts demo` as processes | run |
 | The pytest fixture | run |
 | `.github/workflows/ci.yml` on GitHub (lint, types, the suite on Python 3.11 to 3.14) | run |
-| A Windows guest through `vhcibridge.ps1` and the driver | not run by anyone |
 | `.github/workflows/windows-e2e.yml`: the real Windows Bluetooth stack on a virtual controller, a WinRT central finds the trainer, subscribes and sets a target (Windows 11 on ARM, x64 Python under emulation) | run on GitHub |
+| The same workflow, the way a guest gets the trainer but on one machine: `phantomwatts run --windows` in a process of its own, `vhcibridge.ps1` between its port and the driver | run on GitHub |
+| A Windows guest through `vhcibridge.ps1` and the driver | not run by anyone |
 | Linux through `/dev/vhci` | not run by anyone |
 | A real adapter with `--hci` | not run by anyone |
 | Any real app, ROUVY and Zwift included | not run by anyone |
@@ -315,8 +319,8 @@ uv run ruff check && uv run ruff format --check
 uv run basedpyright
 ```
 
-The tests never touch the Bluetooth of the machine they run on. The one that would, in
-`tests/windows`, is only collected on Windows and only when asked for.
+The tests never touch the Bluetooth of the machine they run on. The ones that would, in
+`tests/windows`, are only collected on Windows and only when asked for.
 
 ## Licence
 
@@ -328,7 +332,10 @@ Windows demands of a controller saved me from finding it out the hard way.
 Bumble declares two dependencies under the LGPL, `libusb1` and the libusb that
 `libusb-package` bundles. This project never opens a USB transport, so `pyproject.toml` leaves
 both out of the lock file and of the environment `uv` builds. A plain `pip install` still pulls
-them in, because Bumble asks for them.
+them in, because Bumble asks for them, and so does a project that depends on phantomwatts. With
+uv such a project keeps them out the same way, with
+`exclude-dependencies = ["libusb1", "libusb-package"]` under `[tool.uv]` in its own
+`pyproject.toml`.
 
 ROUVY is a trademark of VirtualTraining s.r.o., Zwift of Zwift, Inc., Windows of Microsoft and
 Bluetooth of Bluetooth SIG, Inc. This project is not affiliated with any of them.
