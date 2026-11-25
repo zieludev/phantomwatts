@@ -45,5 +45,6 @@ jobs:
       - name: Build
         run: uv build
 
+      # --check-url skips a file that is already there, so a second try can finish a first one.
       - name: Upload
-        run: uv publish
+        run: uv publish --check-url https://pypi.org/simple/

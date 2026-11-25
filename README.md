@@ -279,9 +279,11 @@ Device Information. The control point understands request control, reset, target
 target resistance, simulation parameters, start, stop and pause, and answers everything else
 with "op code not supported". One app at a time.
 
-[docs/protocol.md](docs/protocol.md) has the tables, the result codes, and the seven places
-where I did not follow a document to the letter, mostly because two documents disagree.
-[docs/architecture.md](docs/architecture.md) explains how the code is laid out and why.
+[docs/protocol.md](https://github.com/zieludev/phantomwatts/blob/main/docs/protocol.md) has
+the tables, the result codes, and the seven places where I did not follow a document to the
+letter, mostly because two documents disagree.
+[docs/architecture.md](https://github.com/zieludev/phantomwatts/blob/main/docs/architecture.md)
+explains how the code is laid out and why.
 
 It is called `PhantomBike` on the air, and its Device Information names the manufacturer
 `phantomwatts` and the model `Virtual indoor bike`.
@@ -341,7 +343,8 @@ that start by hand do.
 
 ## Licence
 
-[MIT](LICENSE). What this builds on is listed in [3rdparty_licenses.md](3rdparty_licenses.md),
+[MIT](https://github.com/zieludev/phantomwatts/blob/main/LICENSE). What this builds on is listed
+in [3rdparty_licenses.md](https://github.com/zieludev/phantomwatts/blob/main/3rdparty_licenses.md),
 first of all [Bumble](https://github.com/google/bumble), a Bluetooth stack in Python, and
 [windows-vhci-driver](https://github.com/dlech/windows-vhci-driver), whose notes on what
 Windows demands of a controller saved me from finding it out the hard way.
