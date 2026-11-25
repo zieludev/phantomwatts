@@ -7,10 +7,13 @@ import pytest
 
 ASYNC_TEST_TIMEOUT_S = float(os.environ.get("PHANTOMWATTS_TEST_TIMEOUT_S", "30"))
 
-# tests/windows drives the real Bluetooth stack of the machine it runs on. It is only collected
-# where that is asked for, on Windows.
+# tests/windows and tests/linux drive the real Bluetooth stack of the machine they run on. They
+# are only collected where that is asked for.
 WINDOWS_E2E = platform.system() == "Windows" and os.environ.get("PHANTOMWATTS_WINDOWS_E2E") == "1"
-collect_ignore_glob = [] if WINDOWS_E2E else ["windows/*"]
+LINUX_VHCI = platform.system() == "Linux" and os.environ.get("PHANTOMWATTS_LINUX_VHCI") == "1"
+collect_ignore_glob = [
+    tests for wanted, tests in ((WINDOWS_E2E, "windows/*"), (LINUX_VHCI, "linux/*")) if not wanted
+]
 
 
 @pytest.hookimpl(tryfirst=True)

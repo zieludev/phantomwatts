@@ -29,4 +29,8 @@ install them, unless that project excludes them the same way.
 
 mypy is not the type checker here because it depends on `pathspec`, which is MPL-2.0.
 
+The Linux workflow installs nothing besides the rows above. It uses the `hci_vhci` driver of the
+runner's own kernel and stops there: testing against BlueZ would mean installing it, and BlueZ
+is GPL-2.0-or-later.
+
 The Bluetooth SIG specifications this was implemented from are not part of the repository.

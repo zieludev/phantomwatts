@@ -121,5 +121,7 @@ def test_workflows_follow_the_house_conventions() -> None:
         text = workflow.read_text()
         assert "permissions:\n  contents: read\n" in text, workflow.name
 
-    experimental = (ROOT / ".github" / "workflows" / "windows-e2e.yml").read_text()
-    assert "on:\n  workflow_dispatch:\n\npermissions:" in experimental
+    # These two drive a real Bluetooth stack, on a runner that has one to spare.
+    for started_by_hand in ("windows-e2e.yml", "linux-vhci.yml"):
+        text = (ROOT / ".github" / "workflows" / started_by_hand).read_text()
+        assert "on:\n  workflow_dispatch:\n\npermissions:" in text, started_by_hand

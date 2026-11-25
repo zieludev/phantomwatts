@@ -176,22 +176,32 @@ app.
 
 ## Attach it to Linux
 
-**Nobody has run this yet either.** Bumble can hand a virtual controller to the Linux kernel
-through `/dev/vhci`:
+**The kernel's half of this has run, BlueZ on top of it has not.** Bumble can hand a virtual
+controller to the Linux kernel through `/dev/vhci`:
 
 ```bash
 phantomwatts run --attach vhci
 ```
 
 That needs the `hci_vhci` kernel module and the right to open `/dev/vhci`, which normally means
-root. The kernel should then show one more Bluetooth adapter, which BlueZ should treat like
-hardware. On a machine with Bluetooth devices you care about, try it in a virtual machine first.
+root. The kernel then shows one more Bluetooth adapter, which BlueZ should treat like hardware.
+On a machine with Bluetooth devices you care about, try it in a virtual machine first.
+
+`.github/workflows/linux-vhci.yml` runs that command on a GitHub runner (Ubuntu 26.04, kernel
+7.0). The kernel takes the controller through its start-up and reports the adapter up, under
+the address `F0:F1:F2:F3:F4:F5`. Then a Bumble host stack on the kernel's HCI socket for that
+adapter finds the trainer, takes control and sets a target power. Both pass; the workflow starts
+only by hand. It stops at the kernel: the runner has no BlueZ, and I do not install it there,
+because BlueZ is under the GPL and this project keeps to permissive dependencies, in its tests
+too. So what `bluetoothd`, or an app on top of it, makes of the trainer is still open.
 
 There is also `--hci SPEC`, without any virtual radio: the trainer's own stack on a real
 controller, for example `--hci hci-socket:0`, so that a phone or a head unit can see it over
 the air. That takes the adapter away from the system for as long as it runs, and it has only
-been run against a virtual controller so far. Bumble's USB transports need libusb, which this
-project does not install (see [Licence](#licence)).
+been run against a virtual controller so far. `hci-socket` needs a Python built with Bluetooth
+sockets: a distribution's own Python has them, the ones uv downloads do not (I looked at 3.11
+and 3.13), so there it is `uv sync --python /usr/bin/python3` first. Bumble's USB transports
+need libusb, which this project does not install (see [Licence](#licence)).
 
 ## In your tests
 
@@ -289,7 +299,8 @@ There are no presets that imitate a real trainer, and there will not be.
 | `.github/workflows/windows-e2e.yml`: the real Windows Bluetooth stack on a virtual controller, a WinRT central finds the trainer, subscribes and sets a target (Windows 11 on ARM, x64 Python under emulation) | run on GitHub |
 | The same workflow, the way a guest gets the trainer but on one machine: `phantomwatts run --windows` in a process of its own, `vhcibridge.ps1` between its port and the driver | run on GitHub |
 | A Windows guest through `vhcibridge.ps1` and the driver | not run by anyone |
-| Linux through `/dev/vhci` | not run by anyone |
+| `.github/workflows/linux-vhci.yml`: the Linux kernel takes the virtual controller from `/dev/vhci` and brings it up, and a Bumble host on the kernel's HCI socket completes the exchange (Ubuntu 26.04, kernel 7.0) | run on GitHub |
+| BlueZ, or a Linux app, on that adapter | not run by anyone |
 | A real adapter with `--hci` | not run by anyone |
 | Any real app, ROUVY and Zwift included | not run by anyone |
 | Byte-for-byte comparison with a real trainer | not done |
@@ -320,7 +331,8 @@ uv run basedpyright
 ```
 
 The tests never touch the Bluetooth of the machine they run on. The ones that would, in
-`tests/windows`, are only collected on Windows and only when asked for.
+`tests/windows` and `tests/linux`, are only collected when asked for, which the two workflows
+that start by hand do.
 
 ## Licence
 

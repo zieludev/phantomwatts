@@ -1,0 +1,35 @@
+# The Linux kernel on a virtual controller: `phantomwatts run --attach vhci` on a hosted runner,
+# whose kernel ships the hci_vhci module. It passes there. It only ever starts by hand, and
+# stops at the kernel: there is no BlueZ on the runner.
+name: Linux vhci
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  kernel:
+    name: The kernel takes the virtual controller
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: astral-sh/setup-uv@v10.4.0
+        with:
+          version: "0.10.2"
+
+      # The distribution's Python: the ones uv downloads are built without Bluetooth sockets.
+      - name: Install
+        run: uv sync --locked --no-default-groups --group test --python /usr/bin/python3
+
+      - name: Load the virtual HCI driver
+        run: sudo modprobe hci_vhci
+
+      # As root: /dev/vhci belongs to it, and so does an HCI socket in user channel mode.
+      - name: The kernel brings the controller up and carries the exchange
+        run: sudo --preserve-env=PHANTOMWATTS_LINUX_VHCI .venv/bin/pytest tests/linux -v
+        env:
+          PHANTOMWATTS_LINUX_VHCI: "1"
