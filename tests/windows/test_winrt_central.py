@@ -34,6 +34,10 @@ if platform.system() != "Windows" or os.environ.get("PHANTOMWATTS_WINDOWS_E2E") 
 RADIO_BRING_UP_S = 120.0
 TARGET_POWER_W = 230
 
+# bleak 3.1 still calls WinRT methods that PyWinRT has renamed. Warnings are errors in this
+# suite, and this one is bleak's to fix.
+pytestmark = pytest.mark.filterwarnings("ignore:.* is deprecated, use .*:DeprecationWarning")
+
 
 def _uuid(short: int) -> str:
     return f"0000{short:04x}-0000-1000-8000-00805f9b34fb"
