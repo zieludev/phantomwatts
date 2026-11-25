@@ -123,4 +123,3 @@ def test_workflows_follow_the_house_conventions() -> None:
 
     experimental = (ROOT / ".github" / "workflows" / "windows-e2e.yml").read_text()
     assert "on:\n  workflow_dispatch:\n\npermissions:" in experimental
-    assert "UNVERIFIED" in experimental

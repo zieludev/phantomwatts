@@ -116,7 +116,8 @@ Logs go to standard error. Port 0 lets the system pick a free port and `ready` r
 
 ## Attach it to a Windows guest
 
-**Nobody has run this yet.** It is built on
+**Nobody has run this in a guest yet.** The Windows side of it has run on a GitHub runner (see
+the end of this section). It is built on
 [dlech/windows-vhci-driver](https://github.com/dlech/windows-vhci-driver), a virtual HCI
 controller for Windows: the guest's ordinary Bluetooth stack runs on top of a controller that
 lives in a process on the host, which is this one.
@@ -164,8 +165,11 @@ trainer, and that any app connects. What I did run: a Bumble host stack, connect
 public address as Windows does, completes the whole exchange through those shims over the same
 TCP wire. The driver's author cannot Bluetooth-test x64 guests in CI either, only ARM ones.
 
-`.github/workflows/windows-e2e.yml` is an attempt at exactly this test on a `windows-11-arm`
-runner, with a WinRT central. It is experimental, starts only by hand, and has never run.
+`.github/workflows/windows-e2e.yml` runs the Windows half of this on a `windows-11-arm` runner:
+it installs the driver, hands Windows the virtual controller in process, and a WinRT central
+(bleak) finds the trainer, subscribes, takes control and sets a target power. It passes. It
+starts only by hand, runs an x64 Python under emulation, and does not cover the bridge, a
+guest or an x64 Windows.
 
 ## Attach it to Linux
 
@@ -280,7 +284,7 @@ There are no presets that imitate a real trainer, and there will not be.
 | The pytest fixture | run |
 | `.github/workflows/ci.yml` on GitHub (lint, types, the suite on Python 3.11 to 3.14) | run |
 | A Windows guest through `vhcibridge.ps1` and the driver | not run by anyone |
-| `.github/workflows/windows-e2e.yml` (Windows 11 on ARM, WinRT central) | not run by anyone |
+| `.github/workflows/windows-e2e.yml`: the real Windows Bluetooth stack on a virtual controller, a WinRT central finds the trainer, subscribes and sets a target (Windows 11 on ARM, x64 Python under emulation) | run on GitHub |
 | Linux through `/dev/vhci` | not run by anyone |
 | A real adapter with `--hci` | not run by anyone |
 | Any real app, ROUVY and Zwift included | not run by anyone |

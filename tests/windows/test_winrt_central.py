@@ -1,6 +1,6 @@
 """Through the real Windows Bluetooth stack: a WinRT central drives the trainer.
 
-UNVERIFIED. This test has never run. It needs Windows with the winvhci driver of
+It passes on GitHub's windows-11-arm runner. It needs Windows with the winvhci driver of
 dlech/windows-vhci-driver installed, and is only collected when PHANTOMWATTS_WINDOWS_E2E is
 set (see tests/conftest.py and .github/workflows/windows-e2e.yml).
 

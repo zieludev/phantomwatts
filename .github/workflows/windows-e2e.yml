@@ -1,7 +1,6 @@
-# EXPERIMENTAL AND UNVERIFIED. Nobody has run this workflow yet. It was written from the
-# documentation of dlech/windows-vhci-driver without a Windows machine at hand, so expect to
-# fix it on its first run. It only ever starts by hand.
-name: Windows end-to-end (experimental, unverified)
+# The real Windows Bluetooth stack on a virtual controller. It passes on windows-11-arm and
+# only ever starts by hand. It does not cover the TCP bridge, a guest or an x64 Windows.
+name: Windows end-to-end
 
 on:
   workflow_dispatch:
