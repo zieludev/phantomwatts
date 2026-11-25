@@ -1,0 +1,49 @@
+# Uploads a release to PyPI when its GitHub release is published. PyPI trusts this workflow in
+# this repository (trusted publishing), so there is no token to keep. Started by hand it
+# uploads a tag that already exists, for the day an upload needs a second try.
+name: Publish
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: The release tag to upload, for example v0.1.1
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  pypi:
+    name: Upload to PyPI
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: pypi
+      url: https://pypi.org/project/phantomwatts/
+    permissions:
+      contents: read
+      # Lets the job ask GitHub for the identity token that PyPI exchanges for an upload.
+      id-token: write
+    env:
+      TAG: ${{ inputs.tag || github.event.release.tag_name }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.TAG }}
+
+      - uses: astral-sh/setup-uv@v10.4.0
+        with:
+          version: "0.10.2"
+
+      # A file on PyPI can never be replaced, so the tag has to say what pyproject.toml says.
+      - name: The tag matches the version
+        run: test "v$(uv version --short)" = "$TAG"
+
+      - name: Build
+        run: uv build
+
+      - name: Upload
+        run: uv publish
